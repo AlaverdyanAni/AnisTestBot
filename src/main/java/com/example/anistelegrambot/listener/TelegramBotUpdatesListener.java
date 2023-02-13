@@ -22,10 +22,11 @@ import java.util.regex.Pattern;
 
 @Service
     public class TelegramBotUpdatesListener implements UpdatesListener {
-    private final Logger logger = LoggerFactory.getLogger(com.example.anistelegrambot.listener.TelegramBotUpdatesListener.class);
+    private final Logger LOGGER = LoggerFactory.getLogger(com.example.anistelegrambot.listener.TelegramBotUpdatesListener.class);
     private static final String START_CMD = "/start";
     private static final String GREETING_TEXT = "Hello! It is a Telegram bot.";
-    private static final String REGEX_BOT_MESSAGE = "([0-9\\.\\:\\s]{16})(\\s)([\\W+]+)";
+    private static final String OK_TEXT = "Job scheduled !";
+    private static final Pattern PATTERN = Pattern.compile("([0-9\\.\\:\\s]{16})(\\s)([\\W+]+)");
     private final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm");
 
     private final TelegramBot telegramBot;
@@ -44,20 +45,20 @@ import java.util.regex.Pattern;
     @Override
     public int process(List<Update> updates) {
         updates.forEach(update -> {
-                    logger.info("Processing update: {}", update);
+                    LOGGER.info("Processing update: {}", update);
                     String messageText = update.message().text();
                     long chatId = update.message().chat().id();
                     if (START_CMD.equals(messageText)) {
-                        logger.info(START_CMD + "command has been received");
+                        LOGGER.info(START_CMD + "command has been received");
                         sendMessage(chatId, GREETING_TEXT);
                     } else {
-                        Pattern pattern = Pattern.compile(REGEX_BOT_MESSAGE);
-                        Matcher matcher = pattern.matcher(messageText);
+                        Matcher matcher = PATTERN.matcher(messageText);
                         if (matcher.matches()) {
-                            String date = matcher.group(1);
+                            String dateTime = matcher.group(1);
                             String message = matcher.group(3);
-                            LocalDateTime localDateTime = LocalDateTime.parse(date, DATE_TIME_FORMATTER);
-                            logger.info("Notification task message (date: {}, message: {})",localDateTime,message);
+                            LocalDateTime localDateTime = LocalDateTime.parse(dateTime, DATE_TIME_FORMATTER);
+                            LOGGER.info("Notification task message (date: {}, message: {})",localDateTime,message);
+                            sendMessage(chatId,OK_TEXT);
                             notificationRepository.save(new NotificationTask(chatId,message,localDateTime));
                         }
                     }
@@ -66,7 +67,7 @@ import java.util.regex.Pattern;
         return UpdatesListener.CONFIRMED_UPDATES_ALL;
     }
 
-    @Scheduled(cron = "0 0/1 * * * *")
+    @Scheduled(cron = "0 0/1 * * * *") //fixedRate=1,timeUnit=TimeUnit.MINUTES
     public void sendNotificationTasks() {
         Collection<NotificationTask> notificationTasks = notificationRepository.
                 findAllTasksByDateTime(LocalDateTime.now().truncatedTo(ChronoUnit.MINUTES));
@@ -76,7 +77,7 @@ import java.util.regex.Pattern;
         SendMessage sendMessage = new SendMessage(chatId, messageText);
         SendResponse sendResponse = telegramBot.execute(sendMessage);
         if (!sendResponse.isOk()){
-            logger.warn("Message was not sent: {}, error code: {}", sendMessage,sendResponse.errorCode());
+           LOGGER.error("Message was not sent: {}, error code: {}", sendMessage,sendResponse.errorCode());
         }
     }
 }
