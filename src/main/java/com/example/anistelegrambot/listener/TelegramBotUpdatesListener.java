@@ -5,6 +5,7 @@ import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.UpdatesListener;
 import com.pengrad.telegrambot.model.Update;
 import com.pengrad.telegrambot.request.SendMessage;
+import com.pengrad.telegrambot.response.SendResponse;
 import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -73,6 +74,9 @@ import java.util.regex.Pattern;
     }
     private void sendMessage(Long chatId, String messageText) {
         SendMessage sendMessage = new SendMessage(chatId, messageText);
-        telegramBot.execute(sendMessage);
+        SendResponse sendResponse = telegramBot.execute(sendMessage);
+        if (!sendResponse.isOk()){
+            logger.warn("Message was not sent: {}, error code: {}", sendMessage,sendResponse.errorCode());
+        }
     }
 }
