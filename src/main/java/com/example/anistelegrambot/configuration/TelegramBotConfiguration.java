@@ -1,8 +1,6 @@
 package com.example.anistelegrambot.configuration;
-
 import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.model.DeleteMyCommands;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

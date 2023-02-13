@@ -1,5 +1,4 @@
 package com.example.anistelegrambot.listener;
-
 import com.example.anistelegrambot.entity.NotificationTask;
 import com.example.anistelegrambot.repository.NotificationRepository;
 import com.pengrad.telegrambot.TelegramBot;
@@ -27,7 +26,7 @@ import java.util.regex.Pattern;
     private static final String GREETING_TEXT = "Hello! It is a Telegram bot.";
     private static final String REGEX_BOT_MESSAGE = "([0-9\\.\\:\\s]{16})(\\s)([\\W+]+)";
     private final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm");
-    @Autowired
+
     private final TelegramBot telegramBot;
     private NotificationRepository notificationRepository;
 
@@ -69,8 +68,7 @@ import java.util.regex.Pattern;
     @Scheduled(cron = "0 0/1 * * * *")
     public void sendNotificationTasks() {
         Collection<NotificationTask> notificationTasks = notificationRepository.
-                findAllTasksByDateTime(LocalDateTime.now().truncatedTo(
-                        ChronoUnit.MINUTES));
+                findAllTasksByDateTime(LocalDateTime.now().truncatedTo(ChronoUnit.MINUTES));
         notificationTasks.forEach(task -> sendMessage(task.getChatId(), task.getMessage()));
     }
     private void sendMessage(Long chatId, String messageText) {
